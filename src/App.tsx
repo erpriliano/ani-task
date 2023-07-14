@@ -1,11 +1,26 @@
-import React from "react";
-import "./App.css";
+import React, { Fragment } from "react";
+import { Global, css } from "@emotion/react";
 
-function App(): React.JSX.Element {
+const globalStyles = css`
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #676767;
+    font-family: Montserrat, sans-serif;
+    color: #fff;
+  }
+`;
+
+function App(): React.ReactElement {
   return (
-    <div className="App">
-      <h1>Kick off project</h1>
-    </div>
+    <Fragment>
+      <Global styles={globalStyles} />
+      <div>Hello World</div>
+    </Fragment>
   );
 }
 
