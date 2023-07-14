@@ -1,5 +1,9 @@
 import React, { Fragment } from "react";
 import { Global, css } from "@emotion/react";
+import { Route } from "react-router-dom";
+
+import { Layout } from "./components";
+import { Home, MyCollection } from "./pages";
 
 const globalStyles = css`
   * {
@@ -19,7 +23,10 @@ function App(): React.ReactElement {
   return (
     <Fragment>
       <Global styles={globalStyles} />
-      <div>Hello World</div>
+      <Layout>
+        <Route path="/" element={<Home />} />
+        <Route path="/my-collection" element={<MyCollection />} />
+      </Layout>
     </Fragment>
   );
 }
