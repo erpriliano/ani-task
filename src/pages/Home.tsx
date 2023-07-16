@@ -1,53 +1,70 @@
+/** @jsxImportSource @emotion/react */
 import React, { useState } from "react";
-import { useQuery, gql } from "@apollo/client";
+import { css } from "@emotion/react";
+import { useQuery } from "@apollo/client";
 
-import { type PageData } from "../interface";
-import { Loading } from "../components";
+import { type PageData } from "../api/interface";
+import { GET_MEDIA } from "../api/query";
+import { Card, ErrorText, Loading, PageTitle, Paginator } from "../components";
+import { Link } from "react-router-dom";
 
-const GET_MEDIA = gql`
-  query GetMedia($page: Int) {
-    Page(page: $page, perPage: 10) {
-      media(type: ANIME) {
-        id
-        title {
-          romaji
-          english
-        }
-        coverImage {
-          medium
-        }
-        genres
-        averageScore
-      }
-    }
-  }
-`;
+const homeWrapperStyle = css({
+  padding: "24px",
+});
+
+const contentWrapperStyle = css({
+  marginTop: "24px",
+  display: "grid",
+
+  gridTemplateColumns: "repeat(5, 1fr)",
+  gridGap: "24px",
+  alignItems: "center",
+  justifyItems: "center",
+
+  "@media (max-width: 768px)": {
+    gridTemplateColumns: "repeat(2, 1fr)",
+  },
+
+  "@media (max-width: 1024px)": {
+    gridTemplateColumns: "repeat(3, 1fr)",
+  },
+
+  "@media (max-width: 480px)": {
+    gridTemplateColumns: "repeat(1, 1fr)",
+
+    "& a": {
+      width: "100%",
+    },
+  },
+});
 
 const Home: React.FC = () => {
   const [page, setPage] = useState<number>(1);
-
   const { loading, error, data } = useQuery<PageData>(GET_MEDIA, {
     variables: { page },
   });
 
   if (loading) return <Loading />;
-  if (error != null) return <p>Error :</p>;
-
-  console.log(data?.Page);
+  if (error != null) return <ErrorText message={error.message} />;
 
   return (
-    <div>
-      <button
-        onClick={() => {
+    <div css={homeWrapperStyle}>
+      <PageTitle title="Our Collection" />
+      <div css={contentWrapperStyle}>
+        {data?.Page.media.map((media) => (
+          <Link key={media.id} to={`/detail/${media.id}`}>
+            <Card {...media} />
+          </Link>
+        ))}
+      </div>
+      <Paginator
+        next={() => {
           setPage(page + 1);
         }}
-      >
-        +
-      </button>
-      <p>{page}</p>
-      {data?.Page.media.map((media) => (
-        <h3 key={media.id}>{media.title.english}</h3>
-      ))}
+        prev={() => {
+          setPage(page - 1);
+        }}
+      />
     </div>
   );
 };

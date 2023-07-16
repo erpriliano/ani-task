@@ -53,11 +53,10 @@ const menuStyle = css({
     margin: "0 16px",
   },
 
-  "& li a": {
-    textDecoration: "none",
-    display: "block",
-    width: "100%",
-  },
+  // "& li a": {
+  //   textDecoration: "none",
+  //   display: "block",
+  // },
 
   "@media (max-width: 768px)": {
     "& ul": {
@@ -77,10 +76,9 @@ const menuStyle = css({
       marginTop: "6px",
     },
 
-    "& li a": {
-      width: "100%",
-      padding: "16px 0",
-    },
+    // "& li a": {
+    //   padding: "16px",
+    // },
 
     "& li:hover": {
       backgroundColor: "#023e7e",

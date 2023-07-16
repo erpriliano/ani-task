@@ -3,7 +3,7 @@ import { Global, css } from "@emotion/react";
 import { Route } from "react-router-dom";
 
 import { Layout } from "./components";
-import { Home, MyCollection } from "./pages";
+import { AnimeDetail, Home, MyCollection } from "./pages";
 
 const globalStyles = css`
   * {
@@ -17,6 +17,11 @@ const globalStyles = css`
     font-family: Montserrat, sans-serif;
     color: #fff;
   }
+
+  a {
+    text-decoration: none;
+    color: #fff;
+  }
 `;
 
 function App(): React.ReactElement {
@@ -26,6 +31,7 @@ function App(): React.ReactElement {
       <Layout>
         <Route path="/" element={<Home />} />
         <Route path="/my-collection" element={<MyCollection />} />
+        <Route path="/detail/:id" element={<AnimeDetail />} />
       </Layout>
     </Fragment>
   );
