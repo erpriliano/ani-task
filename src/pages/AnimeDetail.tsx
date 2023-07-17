@@ -3,7 +3,7 @@ import React, { Fragment, useCallback, useEffect, useState } from "react";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import { css } from "@emotion/react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { GET_MEDIA_BY_ID } from "../api/query";
 import { ErrorText, Loading, PageTitle } from "../components";
@@ -73,6 +73,7 @@ const AnimeDetail: React.FC = () => {
   const [collectionName, setCollectionName] = useState<string>("");
   const [selectedCollection, setSelectedCollection] = useState<string[]>([]);
   const [collectionList, setCollectionList] = useState<string[]>([]);
+  const [collectionNames, setCollectionNames] = useState<string[]>([]);
   const { loading, error, data } = useQuery<MediaByIdData>(GET_MEDIA_BY_ID, {
     variables: { id },
   });
@@ -121,24 +122,54 @@ const AnimeDetail: React.FC = () => {
       alert("Please choose a collection");
       return;
     }
-    collections.forEach((collection) => {
-      const animeCollection = localStorage.getItem(collection);
-      if (animeCollection === null) {
-        localStorage.setItem(collection, JSON.stringify([data?.Media]));
-      } else {
-        const parsedCollection = JSON.parse(animeCollection);
-        const check = parsedCollection.some(
-          (media: any) => media.id === data?.Media.id,
-        );
-        if (check as boolean) {
-          alert("Anime already in collection");
-        } else {
-          parsedCollection.push(data?.Media);
-          localStorage.setItem(collection, JSON.stringify(parsedCollection));
-        }
-      }
-    });
+
+    const myCollection = localStorage.getItem("myCollection");
+    const parsedMyCollection =
+      myCollection !== null ? JSON.parse(myCollection) : [];
+
+    const dataCollection = parsedMyCollection.filter(
+      (media: any) => media.id === data?.Media.id,
+    );
+
+    if (dataCollection.length === 0) {
+      parsedMyCollection.push({
+        ...data?.Media,
+        collectionName: collections,
+      });
+
+      localStorage.setItem("myCollection", JSON.stringify(parsedMyCollection));
+    } else {
+      const getExistingCollection = dataCollection[0].collectionName;
+      const newCollection = [
+        ...new Set([...getExistingCollection, ...collections]),
+      ];
+
+      const filteredCollection = parsedMyCollection.filter(
+        (media: any) => media.id !== data?.Media.id,
+      );
+
+      filteredCollection.push({
+        ...data?.Media,
+        collectionName: newCollection,
+      });
+
+      localStorage.setItem("myCollection", JSON.stringify(filteredCollection));
+    }
   };
+
+  useEffect(() => {
+    const myCollection = localStorage.getItem("myCollection");
+    const parsedMyCollection =
+      myCollection !== null ? JSON.parse(myCollection) : [];
+
+    const dataCollection = parsedMyCollection.filter(
+      (media: any) => media.id === data?.Media.id,
+    );
+
+    if (dataCollection.length > 0) {
+      setCollectionNames(dataCollection[0].collectionName);
+    }
+  }, [data?.Media.id, selectedCollection]);
 
   if (loading) return <Loading />;
   if (error != null) return <ErrorText message={error.message} />;
@@ -163,6 +194,18 @@ const AnimeDetail: React.FC = () => {
         <div css={descriptionStyle}>
           <p>{data?.Media.description}</p>
         </div>
+        {collectionNames.length > 0 && (
+          <div style={{ marginTop: "24px" }}>
+            <PageTitle title="Collections" />
+            <div style={{ display: "flex", gap: "4px", marginTop: "10px" }}>
+              {collectionNames.map((collection) => (
+                <Link key={collection} to="/">
+                  {collection}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
         <div style={{ marginTop: "24px" }}>
           <PageTitle title="Create Collection" />
           <div css={createWrapperStyle}>
@@ -201,7 +244,6 @@ const AnimeDetail: React.FC = () => {
                   label: collection,
                 }))}
                 onChange={(e) => {
-                  console.log(e);
                   setSelectedCollection(
                     e.map((item: any) => item.value as string),
                   );

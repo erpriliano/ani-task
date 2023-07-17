@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /** @jsxImportSource @emotion/react */
 import React from "react";
 import { css } from "@emotion/react";
-import { Card, NoCollection, PageTitle } from "../components";
-import { Link } from "react-router-dom";
+import { CardCollection, NoCollection, PageTitle } from "../components";
 
 const contentWrapperStyle = css({
   marginTop: "24px",
@@ -31,21 +31,46 @@ const contentWrapperStyle = css({
 });
 
 const MyCollection: React.FC = () => {
-  const data = localStorage.getItem("collection");
+  const data = localStorage.getItem("collectionName");
+  const myCollection = localStorage.getItem("myCollection");
   const parsedData =
     data !== null && data !== undefined ? JSON.parse(data) : [];
+  const parsedCollection =
+    myCollection !== null ? JSON.parse(myCollection) : [];
 
-  if (data === null) return <NoCollection />;
+  if (parsedData.length === 0) return <NoCollection />;
 
   return (
     <div style={{ padding: "24px" }}>
       <PageTitle title="My Collection" />
       <div css={contentWrapperStyle}>
-        {parsedData.map((media: any) => (
-          <Link key={media.id} to={`/detail/${media.id as string}`}>
-            <Card {...media} />
-          </Link>
-        ))}
+        {parsedData.map((media: any) => {
+          const result = parsedCollection.filter((item: any) =>
+            item.collectionName.includes(media),
+          );
+
+          if (result.length === 0) {
+            return (
+              <CardCollection
+                key={media}
+                imgUrl="https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?20200913095930"
+                media={media}
+                info="No collections"
+                to={`/my-collection/${media}`}
+              />
+            );
+          } else {
+            return (
+              <CardCollection
+                key={media}
+                imgUrl={result[0].coverImage.medium}
+                media={media}
+                info={`Has ${result.length} collections`}
+                to={`/my-collection/${media}`}
+              />
+            );
+          }
+        })}
       </div>
     </div>
   );

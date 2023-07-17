@@ -3,7 +3,7 @@ import { Global, css } from "@emotion/react";
 import { Route } from "react-router-dom";
 
 import { Layout } from "./components";
-import { AnimeDetail, Home, MyCollection } from "./pages";
+import { AnimeDetail, CollectionDetail, Home, MyCollection } from "./pages";
 
 const globalStyles = css`
   * {
@@ -32,6 +32,7 @@ function App(): React.ReactElement {
         <Route path="/" element={<Home />} />
         <Route path="/my-collection" element={<MyCollection />} />
         <Route path="/detail/:id" element={<AnimeDetail />} />
+        <Route path="/my-collection/:media" element={<CollectionDetail />} />
       </Layout>
     </Fragment>
   );
