@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React, { Fragment } from "react";
 import { css } from "@emotion/react";
-import { BrowserRouter as Router, Routes } from "react-router-dom";
+import { Routes } from "react-router-dom";
 
 import { Header, Footer } from "./index";
 
@@ -16,13 +16,11 @@ const mainStyle = css({
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Fragment>
-      <Router>
-        <Header />
-        <main css={mainStyle}>
-          <Routes>{children}</Routes>
-        </main>
-        <Footer />
-      </Router>
+      <Header />
+      <main css={mainStyle}>
+        <Routes>{children}</Routes>
+      </main>
+      <Footer />
     </Fragment>
   );
 };
