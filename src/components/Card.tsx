@@ -149,10 +149,6 @@ const modalContent = css({
   },
 });
 
-const getGenres = (genres: string[]): string => {
-  return genres.slice(0, 3).join(", ") + ", more...";
-};
-
 const Card: React.FC<CardProps> = ({
   title,
   coverImage,
@@ -163,6 +159,10 @@ const Card: React.FC<CardProps> = ({
   to,
 }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const getGenres = (genres: string[]): string => {
+    return genres.slice(0, 3).join(", ") + ", more...";
+  };
 
   return (
     <div css={cardStyle}>

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { css } from "@emotion/react";
 import { useParams } from "react-router-dom";
 import { Card, PageTitle } from "../components";
+import { MY_ANIME_COLLECTION } from "../utils/constants";
+import { getLocalStorageValue } from "../utils/localStorage";
 
 const pageWrapperStyle = css({
   padding: "24px",
@@ -39,25 +41,18 @@ const CollectionDetail: React.FC = () => {
   const [myCollection, setMyCollection] = useState<any>([]);
 
   useEffect(() => {
-    const myCollection = localStorage.getItem("myCollection");
-    const parsedMyCollection =
-      myCollection !== null ? JSON.parse(myCollection) : [];
+    const myAnimeCollection = getLocalStorageValue(MY_ANIME_COLLECTION);
 
-    const dataCollection = parsedMyCollection.filter((item: any) =>
+    const dataCollection = myAnimeCollection.filter((item: any) =>
       item.collectionName.includes(media),
     );
-
-    console.log("dataCollection", dataCollection);
-
     setMyCollection(dataCollection);
   }, []);
 
   const handleRemove = (id: number): void => {
-    const myCollection = localStorage.getItem("myCollection");
-    const parsedMyCollection =
-      myCollection !== null ? JSON.parse(myCollection) : [];
+    const myAnimeCollection = getLocalStorageValue(MY_ANIME_COLLECTION);
 
-    const updatedCollections = parsedMyCollection.map((collection: any) => {
+    const updatedCollections = myAnimeCollection.map((collection: any) => {
       if (collection.id === id) {
         collection.collectionName = collection.collectionName.filter(
           (data: any) => data !== media,
@@ -66,7 +61,10 @@ const CollectionDetail: React.FC = () => {
       return collection;
     });
 
-    localStorage.setItem("myCollection", JSON.stringify(updatedCollections));
+    localStorage.setItem(
+      MY_ANIME_COLLECTION,
+      JSON.stringify(updatedCollections),
+    );
 
     const filteredCollection = updatedCollections.filter((collection: any) =>
       collection.collectionName.includes(media),

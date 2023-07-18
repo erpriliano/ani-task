@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React from "react";
 import { css } from "@emotion/react";
+import { MY_GH_URL } from "../utils/constants";
 
 const footerStyle = css({
   position: "relative",
@@ -33,7 +34,7 @@ const Footer: React.FC = () => {
       <p css={footerText}>
         &copy; 2023 -{" "}
         <a
-          href="https://github.com/erprilianoAbbas"
+          href={MY_GH_URL}
           target="_blank"
           rel="norefferer noopener noreferrer"
         >

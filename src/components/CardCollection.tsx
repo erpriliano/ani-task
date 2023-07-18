@@ -160,7 +160,6 @@ const CardCollection: React.FC<CardCollectionProps> = ({
           <button
             onClick={() => {
               setModalIsOpen(true);
-              console.log(media);
             }}
           >
             <svg

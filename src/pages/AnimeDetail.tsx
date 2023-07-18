@@ -9,6 +9,13 @@ import { useQuery } from "@apollo/client";
 import { GET_MEDIA_BY_ID } from "../api/query";
 import { ErrorText, Loading, PageTitle } from "../components";
 import { type MediaByIdData } from "../api/interface";
+import {
+  COLLECTIONS,
+  MAX_LENGTH,
+  MY_ANIME_COLLECTION,
+  REGEX,
+} from "../utils/constants";
+import { getLocalStorageValue } from "../utils/localStorage";
 
 const selectCustomStyle = {
   option: (baseStyle: any, state: any) => ({
@@ -96,59 +103,55 @@ const AnimeDetail: React.FC = () => {
     variables: { id },
   });
 
-  const createCollection = (): void => {
-    const collections = localStorage.getItem("collectionName");
-    const parsedCollection =
-      collections !== null ? JSON.parse(collections) : [];
-    const maxLength = 10;
-    const regex = /^[a-zA-Z0-9\s]+$/;
+  const handleCreateCollection = (): void => {
+    const collections = getLocalStorageValue(COLLECTIONS);
 
     if (collectionName === null || collectionName === "") {
       setErrorText("Collection name cannot be empty");
+      return;
     } else if (
-      !regex.test(collectionName) ||
-      collectionName.length > maxLength
+      !REGEX.test(collectionName) ||
+      collectionName.length > MAX_LENGTH
     ) {
       setErrorText(
         "Collection name must be alphanumeric and max 10 characters",
       );
+      return;
     } else {
-      if (parsedCollection.length === 0) {
-        parsedCollection.push(collectionName);
+      if (collections.length === 0) {
+        collections.push(collectionName);
       } else {
-        const check = parsedCollection.some(
+        const check = collections.some(
           (collection: any) => collection === collectionName,
         );
 
-        if (check as boolean) {
+        if (check) {
           setErrorText("Collection already exists");
         } else {
-          parsedCollection.push(collectionName);
+          collections.push(collectionName);
         }
       }
+      localStorage.setItem(COLLECTIONS, JSON.stringify(collections));
     }
-    localStorage.setItem("collectionName", JSON.stringify(parsedCollection));
     setIsCollectionExist(true);
-    setCollectionList(parsedCollection);
+    setCollectionList(collections);
     setCollectionName("");
     setErrorText("");
   };
 
   useEffect(() => {
-    const collection = localStorage.getItem("collectionName");
-    const parsedCollection = collection !== null ? JSON.parse(collection) : [];
+    const collections = getLocalStorageValue(COLLECTIONS);
 
-    if (parsedCollection.length > 0) {
+    if (collections.length > 0) {
       setIsCollectionExist(true);
-      setCollectionList(parsedCollection);
+      setCollectionList(collections);
     }
   }, []);
 
   useEffect(() => {
-    const myCollection = localStorage.getItem("myCollection");
-    const parsedMyCollection =
-      myCollection !== null ? JSON.parse(myCollection) : [];
-    const detailAnime = parsedMyCollection.filter(
+    const myAnimeCollection = getLocalStorageValue(MY_ANIME_COLLECTION);
+
+    const detailAnime = myAnimeCollection.filter(
       (media: any) => media.id === data?.Media.id,
     )[0];
 
@@ -163,11 +166,9 @@ const AnimeDetail: React.FC = () => {
       return;
     }
 
-    const myCollection = localStorage.getItem("myCollection");
-    const parsedMyCollection =
-      myCollection !== null ? JSON.parse(myCollection) : [];
+    const myAnimeCollection = getLocalStorageValue(MY_ANIME_COLLECTION);
 
-    let detailAnime = parsedMyCollection.filter(
+    let detailAnime = myAnimeCollection.filter(
       (media: any) => media.id === data?.Media.id,
     )[0];
 
@@ -176,15 +177,18 @@ const AnimeDetail: React.FC = () => {
         ...data?.Media,
         collectionName: collections,
       };
-      parsedMyCollection.push(detailAnime);
-      localStorage.setItem("myCollection", JSON.stringify(parsedMyCollection));
+      myAnimeCollection.push(detailAnime);
+      localStorage.setItem(
+        MY_ANIME_COLLECTION,
+        JSON.stringify(myAnimeCollection),
+      );
     } else {
       const getExistingCollection = detailAnime.collectionName;
       const newCollection = [
         ...new Set([...getExistingCollection, ...collections]),
       ];
 
-      const filteredCollection = parsedMyCollection.filter(
+      const filteredCollection = myAnimeCollection.filter(
         (media: any) => media.id !== data?.Media.id,
       );
 
@@ -194,7 +198,10 @@ const AnimeDetail: React.FC = () => {
       };
 
       filteredCollection.push(detailAnime);
-      localStorage.setItem("myCollection", JSON.stringify(filteredCollection));
+      localStorage.setItem(
+        MY_ANIME_COLLECTION,
+        JSON.stringify(filteredCollection),
+      );
     }
     setMyCollectionList(detailAnime.collectionName);
   };
@@ -249,7 +256,9 @@ const AnimeDetail: React.FC = () => {
             />
             <p css={errorTextStyle}>{errorText}</p>
             <div css={ctaStyle}>
-              <button onClick={createCollection}>Create Collection</button>
+              <button onClick={handleCreateCollection}>
+                Create Collection
+              </button>
             </div>
           </div>
         </div>
