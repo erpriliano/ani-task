@@ -165,7 +165,7 @@ const Card: React.FC<CardProps> = ({
   };
 
   return (
-    <div css={cardStyle}>
+    <div data-testid="card" css={cardStyle}>
       <Modal
         ariaHideApp={false}
         isOpen={modalIsOpen}

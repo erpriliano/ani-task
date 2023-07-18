@@ -26,7 +26,7 @@ const paginatorStyle = css({
 
 const Paginator: React.FC<PaginatorProps> = ({ next, prev }) => {
   return (
-    <div css={paginatorStyle}>
+    <div data-testid="paginator" css={paginatorStyle}>
       <button onClick={next}>
         <p>&larr;</p>
       </button>

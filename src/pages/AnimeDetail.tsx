@@ -217,7 +217,7 @@ const AnimeDetail: React.FC = () => {
       <div>
         <PageTitle title={data?.Media.title.english ?? "No English Title"} />
         <div css={propertyStyle}>
-          <p>{data?.Media.title.romaji}</p>
+          <p data-testid="anime-title">{data?.Media.title.romaji}</p>
           <p>Popularity: {data?.Media.popularity}</p>
           <p>Score: {data?.Media.averageScore}</p>
           <p>
