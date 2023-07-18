@@ -6,7 +6,6 @@ import { useQuery } from "@apollo/client";
 import { type PageData } from "../api/interface";
 import { GET_MEDIA } from "../api/query";
 import { Card, ErrorText, Loading, PageTitle, Paginator } from "../components";
-import { Link } from "react-router-dom";
 
 const homeWrapperStyle = css({
   padding: "24px",
@@ -52,9 +51,7 @@ const Home: React.FC = () => {
       <PageTitle title="Our Collection" />
       <div css={contentWrapperStyle}>
         {data?.Page.media.map((media) => (
-          <Link key={media.id} to={`/detail/${media.id}`}>
-            <Card {...media} />
-          </Link>
+          <Card key={media.id} {...media} to={`/detail/${media.id}`} />
         ))}
       </div>
       <Paginator

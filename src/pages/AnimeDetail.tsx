@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /** @jsxImportSource @emotion/react */
-import React, { Fragment, useCallback, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import { css } from "@emotion/react";
@@ -8,6 +9,14 @@ import { useQuery } from "@apollo/client";
 import { GET_MEDIA_BY_ID } from "../api/query";
 import { ErrorText, Loading, PageTitle } from "../components";
 import { type MediaByIdData } from "../api/interface";
+
+const selectCustomStyle = {
+  option: (baseStyle: any, state: any) => ({
+    ...baseStyle,
+    color: state.isFocused ? "#fff" : "#000",
+    backgroundColor: state.isFocused ? "#FF8D07" : "#fff",
+  }),
+};
 
 const detailWrapperStyle = css({
   padding: "24px",
@@ -68,54 +77,85 @@ const ctaStyle = css({
   "& button": buttonStyle,
 });
 
+const errorTextStyle = css({
+  color: "red",
+  marginTop: "8px",
+  fontSize: "12px",
+});
+
 const AnimeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const animatedComponents = makeAnimated();
   const [collectionName, setCollectionName] = useState<string>("");
   const [selectedCollection, setSelectedCollection] = useState<string[]>([]);
   const [collectionList, setCollectionList] = useState<string[]>([]);
-  const [collectionNames, setCollectionNames] = useState<string[]>([]);
+  const [myCollectionList, setMyCollectionList] = useState<string[]>([]);
+  const [isCollectionExist, setIsCollectionExist] = useState<boolean>(false);
+  const [errorText, setErrorText] = useState<string>("");
   const { loading, error, data } = useQuery<MediaByIdData>(GET_MEDIA_BY_ID, {
     variables: { id },
   });
-  const [isCollectionExist, setIsCollectionExist] = useState<boolean>(false);
-  const animatedComponents = makeAnimated();
 
-  const createCollection = useCallback((): void => {
-    const collection = localStorage.getItem("collectionName");
+  const createCollection = (): void => {
+    const collections = localStorage.getItem("collectionName");
+    const parsedCollection =
+      collections !== null ? JSON.parse(collections) : [];
+    const maxLength = 10;
+    const regex = /^[a-zA-Z0-9\s]+$/;
 
-    if (collection === null) {
-      localStorage.setItem("collectionName", JSON.stringify([collectionName]));
-      setIsCollectionExist(true);
-      setCollectionName("");
-    } else {
-      const parsedCollection = JSON.parse(collection);
-      const check = parsedCollection.some(
-        (collection: any) => collection === collectionName,
+    if (collectionName === null || collectionName === "") {
+      setErrorText("Collection name cannot be empty");
+    } else if (
+      !regex.test(collectionName) ||
+      collectionName.length > maxLength
+    ) {
+      setErrorText(
+        "Collection name must be alphanumeric and max 10 characters",
       );
-
-      if (check as boolean) {
-        alert("Collection already exists");
-      } else {
+    } else {
+      if (parsedCollection.length === 0) {
         parsedCollection.push(collectionName);
-        localStorage.setItem(
-          "collectionName",
-          JSON.stringify(parsedCollection),
+      } else {
+        const check = parsedCollection.some(
+          (collection: any) => collection === collectionName,
         );
+
+        if (check as boolean) {
+          setErrorText("Collection already exists");
+        } else {
+          parsedCollection.push(collectionName);
+        }
       }
-      setCollectionName("");
     }
-  }, [collectionName]);
+    localStorage.setItem("collectionName", JSON.stringify(parsedCollection));
+    setIsCollectionExist(true);
+    setCollectionList(parsedCollection);
+    setCollectionName("");
+    setErrorText("");
+  };
 
   useEffect(() => {
     const collection = localStorage.getItem("collectionName");
+    const parsedCollection = collection !== null ? JSON.parse(collection) : [];
 
-    if (collection === null) {
-      setIsCollectionExist(false);
-    } else {
+    if (parsedCollection.length > 0) {
       setIsCollectionExist(true);
-      setCollectionList(JSON.parse(collection));
+      setCollectionList(parsedCollection);
     }
-  }, [createCollection]);
+  }, []);
+
+  useEffect(() => {
+    const myCollection = localStorage.getItem("myCollection");
+    const parsedMyCollection =
+      myCollection !== null ? JSON.parse(myCollection) : [];
+    const detailAnime = parsedMyCollection.filter(
+      (media: any) => media.id === data?.Media.id,
+    )[0];
+
+    if (detailAnime) {
+      setMyCollectionList(detailAnime.collectionName);
+    }
+  }, [data]);
 
   const saveAnimeToCollection = (collections: string[]): void => {
     if (collections.length === 0) {
@@ -127,19 +167,19 @@ const AnimeDetail: React.FC = () => {
     const parsedMyCollection =
       myCollection !== null ? JSON.parse(myCollection) : [];
 
-    const dataCollection = parsedMyCollection.filter(
+    let detailAnime = parsedMyCollection.filter(
       (media: any) => media.id === data?.Media.id,
-    );
+    )[0];
 
-    if (dataCollection.length === 0) {
-      parsedMyCollection.push({
+    if (!detailAnime) {
+      detailAnime = {
         ...data?.Media,
         collectionName: collections,
-      });
-
+      };
+      parsedMyCollection.push(detailAnime);
       localStorage.setItem("myCollection", JSON.stringify(parsedMyCollection));
     } else {
-      const getExistingCollection = dataCollection[0].collectionName;
+      const getExistingCollection = detailAnime.collectionName;
       const newCollection = [
         ...new Set([...getExistingCollection, ...collections]),
       ];
@@ -148,28 +188,16 @@ const AnimeDetail: React.FC = () => {
         (media: any) => media.id !== data?.Media.id,
       );
 
-      filteredCollection.push({
+      detailAnime = {
         ...data?.Media,
         collectionName: newCollection,
-      });
+      };
 
+      filteredCollection.push(detailAnime);
       localStorage.setItem("myCollection", JSON.stringify(filteredCollection));
     }
+    setMyCollectionList(detailAnime.collectionName);
   };
-
-  useEffect(() => {
-    const myCollection = localStorage.getItem("myCollection");
-    const parsedMyCollection =
-      myCollection !== null ? JSON.parse(myCollection) : [];
-
-    const dataCollection = parsedMyCollection.filter(
-      (media: any) => media.id === data?.Media.id,
-    );
-
-    if (dataCollection.length > 0) {
-      setCollectionNames(dataCollection[0].collectionName);
-    }
-  }, [data?.Media.id, selectedCollection]);
 
   if (loading) return <Loading />;
   if (error != null) return <ErrorText message={error.message} />;
@@ -194,12 +222,12 @@ const AnimeDetail: React.FC = () => {
         <div css={descriptionStyle}>
           <p>{data?.Media.description}</p>
         </div>
-        {collectionNames.length > 0 && (
+        {myCollectionList.length > 0 && (
           <div style={{ marginTop: "24px" }}>
             <PageTitle title="Collections" />
             <div style={{ display: "flex", gap: "4px", marginTop: "10px" }}>
-              {collectionNames.map((collection) => (
-                <Link key={collection} to="/">
+              {myCollectionList.map((collection) => (
+                <Link key={collection} to={`/my-collection/${collection}`}>
                   {collection}
                 </Link>
               ))}
@@ -219,8 +247,9 @@ const AnimeDetail: React.FC = () => {
                 setCollectionName(e.target.value);
               }}
             />
+            <p css={errorTextStyle}>{errorText}</p>
             <div css={ctaStyle}>
-              <button onClick={createCollection}>Add Collection</button>
+              <button onClick={createCollection}>Create Collection</button>
             </div>
           </div>
         </div>
@@ -235,6 +264,7 @@ const AnimeDetail: React.FC = () => {
               }}
             >
               <Select
+                styles={selectCustomStyle}
                 closeMenuOnSelect={false}
                 components={animatedComponents}
                 defaultValue={[]}

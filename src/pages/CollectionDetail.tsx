@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React, { useEffect, useState } from "react";
 import { css } from "@emotion/react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Card, PageTitle } from "../components";
 
 const pageWrapperStyle = css({
@@ -36,7 +36,7 @@ const contentWrapperStyle = css({
 
 const CollectionDetail: React.FC = () => {
   const { media } = useParams<{ media: string }>();
-  const [dataCollection, setDataCollection] = useState<any>([]);
+  const [myCollection, setMyCollection] = useState<any>([]);
 
   useEffect(() => {
     const myCollection = localStorage.getItem("myCollection");
@@ -47,19 +47,51 @@ const CollectionDetail: React.FC = () => {
       item.collectionName.includes(media),
     );
 
-    setDataCollection(dataCollection);
+    console.log("dataCollection", dataCollection);
+
+    setMyCollection(dataCollection);
   }, []);
+
+  const handleRemove = (id: number): void => {
+    const myCollection = localStorage.getItem("myCollection");
+    const parsedMyCollection =
+      myCollection !== null ? JSON.parse(myCollection) : [];
+
+    const updatedCollections = parsedMyCollection.map((collection: any) => {
+      if (collection.id === id) {
+        collection.collectionName = collection.collectionName.filter(
+          (data: any) => data !== media,
+        );
+      }
+      return collection;
+    });
+
+    localStorage.setItem("myCollection", JSON.stringify(updatedCollections));
+
+    const filteredCollection = updatedCollections.filter((collection: any) =>
+      collection.collectionName.includes(media),
+    );
+
+    setMyCollection(filteredCollection);
+  };
 
   return (
     <div css={pageWrapperStyle}>
       <PageTitle title={media} />
       <div css={contentWrapperStyle}>
-        {dataCollection.length === 0 && <p>Still empty :(</p>}
-        {dataCollection.map((data: any) => (
+        {myCollection.length === 0 && <p>Still empty :(</p>}
+        {myCollection.map((data: any) => (
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          <Link key={data.id} to={`/detail/${data.id}`}>
-            <Card {...data} />
-          </Link>
+          <Card
+            key={data.id}
+            {...data}
+            cta={media !== null}
+            handleRemove={() => {
+              handleRemove(data.id);
+            }}
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            to={`/detail/${data.id}`}
+          />
         ))}
       </div>
     </div>
