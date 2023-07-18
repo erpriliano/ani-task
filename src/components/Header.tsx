@@ -53,11 +53,6 @@ const menuStyle = css({
     margin: "0 16px",
   },
 
-  // "& li a": {
-  //   textDecoration: "none",
-  //   display: "block",
-  // },
-
   "@media (max-width: 768px)": {
     "& ul": {
       flexDirection: "column",
@@ -75,10 +70,6 @@ const menuStyle = css({
       padding: "6px",
       marginTop: "6px",
     },
-
-    // "& li a": {
-    //   padding: "16px",
-    // },
 
     "& li:hover": {
       backgroundColor: "#023e7e",

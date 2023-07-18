@@ -4,6 +4,13 @@ import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import { css } from "@emotion/react";
 import { CardCollection, NoCollection, PageTitle } from "../components";
+import {
+  COLLECTIONS,
+  MAX_LENGTH,
+  MY_ANIME_COLLECTION,
+  REGEX,
+} from "../utils/constants";
+import { getLocalStorageValue } from "../utils/localStorage";
 
 const pageWrapperStyle = css({
   padding: "24px",
@@ -98,75 +105,67 @@ const MyCollection: React.FC = () => {
   const [myCollections, setMyCollections] = useState<any>([]);
   const [errorText, setErrorText] = useState<string>("");
 
-  const handleAddCollection = (): void => {
-    const collection = localStorage.getItem("collectionName");
-    const parsedCollection = collection !== null ? JSON.parse(collection) : [];
-    const maxLength = 10;
-    const regex = /^[a-zA-Z0-9\s]+$/;
+  const handleCreateCollection = (): void => {
+    const collections = getLocalStorageValue(COLLECTIONS);
 
     if (collectionName === null || collectionName === "") {
       setErrorText("Collection name cannot be empty");
+      return;
     } else if (
-      !regex.test(collectionName) ||
-      collectionName.length > maxLength
+      !REGEX.test(collectionName) ||
+      collectionName.length > MAX_LENGTH
     ) {
       setErrorText(
         "Collection name must be alphanumeric and max 10 characters",
       );
+      return;
     } else {
-      if (parsedCollection.length === 0) {
-        parsedCollection.push(collectionName);
+      if (collections.length === 0) {
+        collections.push(collectionName);
       } else {
-        const check = parsedCollection.some(
+        const check = collections.some(
           (collection: any) => collection === collectionName,
         );
 
-        if (check as boolean) {
+        if (check) {
           setErrorText("Collection already exist");
         } else {
-          parsedCollection.push(collectionName);
+          collections.push(collectionName);
         }
       }
-      setErrorText("");
+      localStorage.setItem(COLLECTIONS, JSON.stringify(collections));
       setModalIsOpen(false);
     }
-
-    localStorage.setItem("collectionName", JSON.stringify(parsedCollection));
+    setErrorText("");
     setCollectionName("");
-    setCollections(parsedCollection);
+    setCollections(collections);
   };
 
   useEffect(() => {
-    const collection = localStorage.getItem("collectionName");
-    const parsedCollection = collection !== null ? JSON.parse(collection) : [];
-    const myCollection = localStorage.getItem("myCollection");
-    const parsedMyCollection =
-      myCollection !== null ? JSON.parse(myCollection) : [];
-    setCollections(parsedCollection);
-    setMyCollections(parsedMyCollection);
+    const collections = getLocalStorageValue(COLLECTIONS);
+    const myAnimeCollection = getLocalStorageValue(MY_ANIME_COLLECTION);
+    setCollections(collections);
+    setMyCollections(myAnimeCollection);
   }, []);
 
   const handleRemoveCollection = (collectionName: string): void => {
-    console.log(collectionName);
-    const collections = localStorage.getItem("collectionName");
-    const parsedCollections =
-      collections !== null ? JSON.parse(collections) : [];
-    const myCollection = localStorage.getItem("myCollection");
-    const parsedMyCollection =
-      myCollection !== null ? JSON.parse(myCollection) : [];
-
-    const updatedCollections = parsedCollections.filter(
+    const collections = getLocalStorageValue(COLLECTIONS);
+    const myAnimeCollection = getLocalStorageValue(MY_ANIME_COLLECTION);
+    const updatedCollections = collections.filter(
       (collection: any) => collection !== collectionName,
     );
-    localStorage.setItem("collectionName", JSON.stringify(updatedCollections));
+    localStorage.setItem(COLLECTIONS, JSON.stringify(updatedCollections));
 
-    const updatedMyCollection = parsedMyCollection.map((myCollection: any) => ({
+    const updatedMyCollection = myAnimeCollection.map((myCollection: any) => ({
       ...myCollection,
       collectionName: myCollection.collectionName.filter(
         (collection: any) => collection !== collectionName,
       ),
     }));
-    localStorage.setItem("myCollection", JSON.stringify(updatedMyCollection));
+    localStorage.setItem(
+      MY_ANIME_COLLECTION,
+      JSON.stringify(updatedMyCollection),
+    );
     setCollections(updatedCollections);
   };
 
@@ -195,7 +194,7 @@ const MyCollection: React.FC = () => {
             }}
           />
           <p css={errorTextStyle}>{errorText}</p>
-          <button onClick={handleAddCollection}>Add</button>
+          <button onClick={handleCreateCollection}>Add</button>
         </div>
       </Modal>
       <div css={headerStyle}>
